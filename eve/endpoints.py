@@ -18,7 +18,7 @@ from eve.render import send_response
 from eve.auth import requires_auth
 from eve.utils import config, request_method, debug_error_message
 from flask import abort, request
-
+import time
 
 def collections_endpoint(**lookup):
     """ Resource endpoint handler
@@ -44,7 +44,7 @@ def collections_endpoint(**lookup):
     .. versionchanged:: 0.0.2
         Support for DELETE resource method.
     """
-
+    start = time.time()
     resource = _resource()
     response = None
     method = request_method()
@@ -58,7 +58,12 @@ def collections_endpoint(**lookup):
         send_response(resource, response)
     else:
         abort(405)
-    return send_response(resource, response)
+    start_respones = time.time()
+    out = send_response(resource, response)
+
+    with open('/tmp/logging.txt', 'ab') as f:
+        f.write(('\ncollection endpoint took: {} of which {} was for send response'.format((time.time()-start), (time.time()-start_respones))))
+    return out
 
 
 def item_endpoint(**lookup):

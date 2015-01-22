@@ -131,6 +131,11 @@ def _prepare_response(resource, dct, last_modified=None, etag=None,
 
     .. versionadded:: 0.0.4
     """
+    start_all = time.time()
+    start = time.time()
+    with open('/tmp/logging.txt', 'ab') as f:
+        f.write('\nrequest method: {}'.format(request.method))
+
     if request.method == 'OPTIONS':
         resp = app.make_default_options_response()
     else:
@@ -139,18 +144,32 @@ def _prepare_response(resource, dct, last_modified=None, etag=None,
         mime, renderer = _best_mime()
 
         # invoke the render function and obtain the corresponding rendered item
+        start_1 = time.time()
         rendered = globals()[renderer](dct)
+        with open('/tmp/logging.txt', 'ab') as f:
+            f.write('\nrendered global internal internal: {}'.format((time.time()-start_1)))
 
         # build the main wsgi rensponse object
+        start_1 = time.time()
         resp = make_response(rendered, status)
-        resp.mimetype = mime
+        with open('/tmp/logging.txt', 'ab') as f:
+            f.write('\nmake response internal: {}'.format((time.time()-start_1)))
 
+        resp.mimetype = mime
+    with open('/tmp/logging.txt', 'ab') as f:
+        f.write('\nmake response 1: {}'.format((time.time()-start)))
+
+
+    start = time.time()
     # extra headers
     if headers:
         for header, value in headers:
             if header != 'Content-Type':
                 resp.headers.add(header, value)
+    with open('/tmp/logging.txt', 'ab') as f:
+        f.write('\nheaders 1: {}'.format((time.time()-start)))
 
+    start = time.time()
     # cache directives
     if request.method in ('GET', 'HEAD'):
         if resource:
@@ -163,6 +182,8 @@ def _prepare_response(resource, dct, last_modified=None, etag=None,
             resp.headers.add('Cache-Control', cache_control)
         if expires:
             resp.expires = time.time() + expires
+    with open('/tmp/logging.txt', 'ab') as f:
+        f.write('\ncache 1: {}'.format((time.time()-start)))
 
     # etag and last-modified
     if etag:
@@ -170,6 +191,7 @@ def _prepare_response(resource, dct, last_modified=None, etag=None,
     if last_modified:
         resp.headers.add('Last-Modified', date_to_rfc1123(last_modified))
 
+    start = time.time()
     # CORS
     origin = request.headers.get('Origin')
     if origin and config.X_DOMAINS:
@@ -207,12 +229,19 @@ def _prepare_response(resource, dct, last_modified=None, etag=None,
         resp.headers.add('Access-Control-Allow-Methods', methods)
         resp.headers.add('Access-Control-Allow-Max-Age', config.X_MAX_AGE)
 
+    with open('/tmp/logging.txt', 'ab') as f:
+        f.write('\ncors 1: {}'.format((time.time()-start)))
+
+
     # Rate-Limiting
     limit = get_rate_limit()
     if limit and limit.send_x_headers:
         resp.headers.add('X-RateLimit-Remaining', str(limit.remaining))
         resp.headers.add('X-RateLimit-Limit', str(limit.limit))
         resp.headers.add('X-RateLimit-Reset', str(limit.reset))
+
+    with open('/tmp/logging.txt', 'ab') as f:
+        f.write('\ntotal respo 1: {}'.format((time.time()-start_all)))
 
     return resp
 

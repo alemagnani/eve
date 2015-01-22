@@ -147,7 +147,7 @@ def get(resource, **lookup):
         getattr(cursor, 'extra')(response)
 
     with open('/tmp/logging.txt', 'ab') as f:
-        f.write('\nget took: {}\n'.format((time.time()-start_get)))
+        f.write('get internal took: {}\n'.format((time.time()-start_get)))
 
     return response, last_modified, etag, status
 
