@@ -12,7 +12,8 @@
 
 import time
 import datetime
-import simplejson as json
+import json
+import simplejson
 from werkzeug import utils
 from functools import wraps
 from eve.methods.common import get_rate_limit
@@ -283,6 +284,10 @@ def render_json(data):
     .. versionchanged:: 0.1.0
        Support for optional HATEOAS.
     """
+    #return json.dumps(data, cls=app.data.json_encoder_class,
+    #                  sort_keys=config.JSON_SORT_KEYS)
+
+
     return json.dumps(data, cls=app.data.json_encoder_class,
                       sort_keys=config.JSON_SORT_KEYS)
 
