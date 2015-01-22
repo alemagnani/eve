@@ -288,9 +288,11 @@ def render_json(data):
     #                  sort_keys=config.JSON_SORT_KEYS)
 
 
-    return json.dumps(data, cls=app.data.json_encoder_class,
+    return json.dumps(data, default=jsonRenderEmpty,
                       sort_keys=config.JSON_SORT_KEYS)
 
+def jsonRenderEmpty(o):
+    return ''
 
 def render_xml(data):
     """ XML render function.
