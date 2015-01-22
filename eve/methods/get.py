@@ -84,6 +84,8 @@ def get(resource, **lookup):
        JSON formatted.
     """
 
+    start_get = time.time()
+
     documents = []
     response = {}
     etag = None
@@ -96,6 +98,8 @@ def get(resource, **lookup):
     # If-Modified-Since disabled on collections (#334)
     req.if_modified_since = None
 
+    start = time.time()
+
     cursor = app.data.find(resource, req, lookup)
     for document in cursor:
         build_response_document(document, resource, embedded_fields)
@@ -104,6 +108,9 @@ def get(resource, **lookup):
         # build last update for entire response
         if document[config.LAST_UPDATED] > last_update:
             last_update = document[config.LAST_UPDATED]
+
+    with open('/tmp/logging.txt', 'ab') as f:
+        f.write('\ncursor iteration took: {}\n'.format((time.time()-start)))
 
     status = 200
     last_modified = last_update if last_update > epoch() else None
@@ -118,7 +125,6 @@ def get(resource, **lookup):
     # add pagination info
     if config.DOMAIN[resource]['pagination']:
         pagination_count = config.DOMAIN[resource].get('pagination_count')
-        start = time.time()
         if pagination_count is None or pagination_count:
             if count is None:
                 count = cursor.count(with_limit_and_skip=False)
@@ -139,6 +145,9 @@ def get(resource, **lookup):
     # response.
     if hasattr(cursor, 'extra'):
         getattr(cursor, 'extra')(response)
+
+    with open('/tmp/logging.txt', 'ab') as f:
+        f.write('\nget took: {}\n'.format((time.time()-start_get)))
 
     return response, last_modified, etag, status
 
