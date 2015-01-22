@@ -19,7 +19,7 @@ from eve.auth import requires_auth
 from eve.utils import parse_request, home_link, querydef, config
 from eve.versioning import synthesize_versioned_document, versioned_id_field, \
     get_old_document, diff_document
-
+import time
 
 @ratelimit()
 @requires_auth('resource')
@@ -109,12 +109,22 @@ def get(resource, **lookup):
     last_modified = last_update if last_update > epoch() else None
 
     response[config.ITEMS] = documents
-    count = cursor.count(with_limit_and_skip=False)
+    count = None
     if config.DOMAIN[resource]['hateoas']:
+        if count is None:
+            count = cursor.count(with_limit_and_skip=False)
         response[config.LINKS] = _pagination_links(resource, req, count)
 
     # add pagination info
     if config.DOMAIN[resource]['pagination']:
+        pagination_count = config.DOMAIN[resource].get('pagination_count')
+        start = time.time()
+        if pagination_count is None or pagination_count:
+            if count is None:
+                count = cursor.count(with_limit_and_skip=False)
+        else:
+            if count is None:
+                count = -1
         response[config.META] = _meta_links(req, count)
 
     # notify registered callback functions. Please note that, should the
