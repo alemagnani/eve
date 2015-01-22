@@ -19,7 +19,6 @@ from eve.auth import requires_auth
 from eve.utils import parse_request, home_link, querydef, config
 from eve.versioning import synthesize_versioned_document, versioned_id_field, \
     get_old_document, diff_document
-import time
 
 @ratelimit()
 @requires_auth('resource')
@@ -84,8 +83,6 @@ def get(resource, **lookup):
        JSON formatted.
     """
 
-    start_get = time.time()
-
     documents = []
     response = {}
     etag = None
@@ -98,8 +95,6 @@ def get(resource, **lookup):
     # If-Modified-Since disabled on collections (#334)
     req.if_modified_since = None
 
-    start = time.time()
-
     cursor = app.data.find(resource, req, lookup)
     for document in cursor:
         build_response_document(document, resource, embedded_fields)
@@ -108,9 +103,6 @@ def get(resource, **lookup):
         # build last update for entire response
         if document[config.LAST_UPDATED] > last_update:
             last_update = document[config.LAST_UPDATED]
-
-    with open('/tmp/logging.txt', 'ab') as f:
-        f.write('\ncursor iteration took: {}\n'.format((time.time()-start)))
 
     status = 200
     last_modified = last_update if last_update > epoch() else None
@@ -146,11 +138,7 @@ def get(resource, **lookup):
     if hasattr(cursor, 'extra'):
         getattr(cursor, 'extra')(response)
 
-    with open('/tmp/logging.txt', 'ab') as f:
-        f.write('get internal took: {}\n'.format((time.time()-start_get)))
-
     return response, last_modified, etag, status
-
 
 @ratelimit()
 @requires_auth('item')
