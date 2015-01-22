@@ -265,9 +265,9 @@ def render_json(data):
                       sort_keys=config.JSON_SORT_KEYS)
 
 def jsonRender(o):
-    if isinstance(o, bson.objectid.ObjectId):
-        return app.data.json_encoder_class(o)
-    return ''
+    #if isinstance(o, bson.objectid.ObjectId):
+    return app.data.json_encoder_class(o)
+    #return ''
 
 def render_xml(data):
     """ XML render function.
