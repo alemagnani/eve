@@ -265,7 +265,7 @@ def render_json(data):
                       sort_keys=config.JSON_SORT_KEYS)
 
 def jsonRender(o):
-    print 'type o: {}'.format(type(o))
+    #print 'type o: {}'.format(type(o))
     if not isinstance(o, datetime.datetime):
         return str(o)
         #return app.data.json_encoder_class(o)
